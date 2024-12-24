@@ -104,29 +104,18 @@ if ! command_exists stockfish; then
     exit 1
 fi
 
-# Clone the repository
-echo -e "${BLUE}Downloading Chess Analysis Assistant...${NC}"
-git clone https://github.com/turlockmike/chess-mcp.git
-cd chess-mcp
-
-# Install npm dependencies and build
-echo -e "${BLUE}Installing project dependencies...${NC}"
-npm install
-npm run build
-
 # Create Claude Desktop configuration
 echo -e "${BLUE}Creating Claude Desktop configuration...${NC}"
 CLAUDE_CONFIG_DIR="$HOME/Library/Application Support/Claude"
 mkdir -p "$CLAUDE_CONFIG_DIR"
 
 CONFIG_FILE="$CLAUDE_CONFIG_DIR/claude_desktop_config.json"
-CURRENT_DIR=$(pwd)
 
 # Prepare the chess server configuration
 CHESS_CONFIG="{
-    \"command\": \"node\",
+    \"command\": \"npx\",
     \"args\": [
-        \"${CURRENT_DIR}/build/index.js\"
+        \"chess-mcp\"
     ]
 }"
 
@@ -158,6 +147,10 @@ else
     }
 }" > "$CONFIG_FILE"
 fi
+
+# Install the chess-mcp package globally
+echo -e "${BLUE}Installing chess-mcp package...${NC}"
+npm install -g chess-mcp
 
 echo -e "${GREEN}Installation complete!${NC}"
 echo -e "${BLUE}Please restart Claude Desktop to use the Chess Analysis Assistant.${NC}" 

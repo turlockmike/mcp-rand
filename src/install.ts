@@ -2,7 +2,7 @@
 import { execSync } from 'child_process';
 import { platform } from 'os';
 import { existsSync, mkdirSync, writeFileSync, copyFileSync } from 'fs';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import { homedir } from 'os';
 
 const RED = '\x1b[31m';
@@ -143,10 +143,16 @@ function configureClaudeDesktop() {
     writeFileSync(configFile, JSON.stringify(config, null, 4));
 }
 
+function installChessMcp() {
+    console.log(`${BLUE}Installing chess-mcp package...${NC}`);
+    execSync('npm install -g chess-mcp', { stdio: 'inherit' });
+}
+
 async function main() {
     try {
         installDependencies();
         verifyInstallations();
+        installChessMcp();
         configureClaudeDesktop();
         
         console.log(`${GREEN}Installation complete!${NC}`);
