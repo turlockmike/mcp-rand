@@ -1,4 +1,4 @@
-import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequest, ImageContent } from '@modelcontextprotocol/sdk/types.js';
 import { Handler } from './types.js';
 import { ChessImageService } from '../chess-image-service.js';
 
@@ -19,15 +19,14 @@ export class GenerateImageHandler implements Handler<CallToolRequest> {
         light,
         dark,
       });
+      const imageContent: ImageContent = {
+        type: 'image',
+        data: imageBuffer.toString('base64'),
+        mimeType: 'image/png'
+      };
 
       return {
-        content: [{
-          type: 'resource',
-          resource: {
-            uri: `data:image/png;base64,${imageBuffer.toString('base64')}`,
-            text: 'Chess position image'
-          }
-        }],
+        content: [imageContent],
         isError: false
       };
     } catch (error) {
