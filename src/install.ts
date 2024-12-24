@@ -144,7 +144,7 @@ function configureClaudeDesktop() {
 }
 
 function installChessMcp() {
-    console.log(`${BLUE}Installing chess-mcp package...${NC}`);
+    console.log(`${BLUE}Installing chess-mcp package globally...${NC}`);
     execSync('npm install -g chess-mcp', { stdio: 'inherit' });
 }
 

@@ -149,7 +149,7 @@ else
 fi
 
 # Install the chess-mcp package globally
-echo -e "${BLUE}Installing chess-mcp package...${NC}"
+echo -e "${BLUE}Installing chess-mcp package globally...${NC}"
 npm install -g chess-mcp
 
 echo -e "${GREEN}Installation complete!${NC}"
