@@ -15,6 +15,7 @@ import {
   ListToolsHandler,
   EvaluatePositionHandler,
   GenerateImageHandler,
+  PlayMoveHandler,
 } from './handlers/index.js';
 
 interface CustomMcpError extends Error {
@@ -61,11 +62,13 @@ export class ChessServer {
     const listToolsHandler = new ListToolsHandler();
     const evaluatePositionHandler = new EvaluatePositionHandler(this.engine, this.imageService);
     const generateImageHandler = new GenerateImageHandler(this.imageService);
+    const playMoveHandler = new PlayMoveHandler(this.engine, this.imageService);
 
     // Register handlers
     this.handlerRegistry.register('list_tools', listToolsHandler);
     this.handlerRegistry.register('evaluate_chess_position', evaluatePositionHandler);
     this.handlerRegistry.register('generate_chess_position_image', generateImageHandler);
+    this.handlerRegistry.register('play_chess_move', playMoveHandler);
 
     // Set up request handlers
     this.server.setRequestHandler(ListToolsRequestSchema, async (request) => {

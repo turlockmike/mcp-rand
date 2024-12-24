@@ -52,6 +52,11 @@ export interface EvaluationResult {
   moveNumber?: number;
 }
 
+export interface MoveResult {
+  isLegal: boolean;
+  resultingFen: string;
+}
+
 export class ChessEngine {
   private engine: Engine | null = null;
   private engineReady: boolean = false;
@@ -250,6 +255,49 @@ export class ChessEngine {
       nodes: lastInfo.nodes || 0,
       time: lastInfo.time || 0
     };
+  }
+
+  async playMove(fen: string, move: string): Promise<MoveResult> {
+    // Validate move format
+    if (!move.match(/^[a-h][1-8][a-h][1-8][qrbnQRBN]?$/)) {
+      throw new Error('Invalid move format');
+    }
+
+    const chess = new Chess(fen);
+    
+    if (!chess.validate_fen(fen).valid) {
+      throw new Error('Invalid FEN position');
+    }
+
+    try {
+      // Parse the move from UCI format (e2e4) to chess.js format ({from: 'e2', to: 'e4'})
+      const from = move.slice(0, 2);
+      const to = move.slice(2, 4);
+      const promotion = move.length > 4 ? move[4].toLowerCase() : undefined;
+
+      const moveResult = chess.move({
+        from,
+        to,
+        promotion
+      });
+
+      if (moveResult) {
+        return {
+          isLegal: true,
+          resultingFen: chess.fen()
+        };
+      } else {
+        return {
+          isLegal: false,
+          resultingFen: ''
+        };
+      }
+    } catch (error) {
+      return {
+        isLegal: false,
+        resultingFen: ''
+      };
+    }
   }
 
   isReady(): boolean {

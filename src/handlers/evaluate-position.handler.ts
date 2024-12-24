@@ -3,6 +3,43 @@ import { Handler } from './types.js';
 import { ChessEngine, EvaluationResult, BestMovesResult } from '../chess-engine.js';
 import { ChessImageService } from '../chess-image-service.js';
 
+export const toolSpec = {
+  name: 'evaluate_chess_position',
+  description: 'Evaluate a chess position using Stockfish engine',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      fen: {
+        type: 'string',
+        description: 'Chess position in FEN notation',
+      },
+      depth: {
+        type: 'number',
+        description: 'Search depth (1-20)',
+        minimum: 1,
+        maximum: 20,
+      },
+      numMoves: {
+        type: 'number',
+        description: 'Number of best moves to return',
+        minimum: 0,
+        maximum: 10,
+      },
+      timeLimit: {
+        type: 'number',
+        description: 'Time limit in milliseconds (default: 1000)',
+        minimum: 100,
+        maximum: 10000,
+      },
+      includeImage: {
+        type: 'boolean',
+        description: 'Whether to include an image of the position in the response',
+      },
+    },
+    required: ['fen'],
+  },
+};
+
 export class EvaluatePositionHandler implements Handler<CallToolRequest> {
   constructor(
     private engine: ChessEngine,
