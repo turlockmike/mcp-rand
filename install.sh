@@ -115,6 +115,7 @@ CONFIG_FILE="$CLAUDE_CONFIG_DIR/claude_desktop_config.json"
 CHESS_CONFIG="{
     \"command\": \"npx\",
     \"args\": [
+        \"-y\",
         \"chess-mcp\"
     ]
 }"

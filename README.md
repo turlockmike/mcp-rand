@@ -13,23 +13,17 @@ This tool helps you analyze chess positions and get professional evaluations usi
 
 ## Quick Installation
 
-### Using npx (Recommended)
+### Mac and Linux Users
 
-The easiest way to install is using npx:
-
-```bash
-npx chess-mcp-install
-```
-
-That's it! The script will install all necessary dependencies and set up the Chess Assistant for you.
-
-### Using curl (Alternative)
-
-If you prefer, you can also install using curl:
-
+Open Terminal and run this command:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/turlockmike/chess-mcp/master/install.sh | bash
 ```
+
+That's it! The script will:
+1. Install required dependencies (Node.js 20+, Stockfish, Cairo)
+2. Configure Claude Desktop
+3. Set up the Chess Assistant
 
 ## Manual Installation (Windows or Advanced Users)
 
@@ -52,8 +46,7 @@ If you prefer to install manually or are using Windows, follow these steps:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Install required packages
-brew install node@20 stockfish cairo pkg-config jq
-brew link node@20
+brew install stockfish cairo pkg-config jq
 ```
 
 **Windows Users:**
@@ -61,48 +54,24 @@ brew link node@20
 2. Download [Stockfish](https://stockfishchess.org/download/) and add it to your PATH
 3. Install [Cairo](https://github.com/Automattic/node-canvas/wiki/Installation:-Windows)
 
-#### Step 2: Set Up the Chess Assistant
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/turlockmike/chess-mcp.git
-   cd chess-mcp
-   ```
-2. Install dependencies and build:
-   ```bash
-   npm install
-   npm run build
-   ```
+#### Step 2: Install Chess Assistant
+```bash
+npm install -g chess-mcp
+```
 
 #### Step 3: Configure Claude Desktop
 1. Open Claude Desktop
 2. Navigate to the configuration file:
    - Mac: `~/Library/Application Support/Claude/claude_desktop_config.json`
    - Windows: `%APPDATA%/Claude/claude_desktop_config.json`
-3. Add this configuration (replace the paths with your actual paths):
+3. Add this configuration:
 
-For Mac/Linux:
 ```json
 {
     "mcpServers": {
         "chess": {
-            "command": "node",
-            "args": [
-                "/absolute/path/to/chess-mcp/build/index.js"
-            ]
-        }
-    }
-}
-```
-
-For Windows:
-```json
-{
-    "mcpServers": {
-        "chess": {
-            "command": "node",
-            "args": [
-                "C:\\path\\to\\chess-mcp\\build\\index.js"
-            ]
+            "command": "npx",
+            "args": ["chess-mcp"]
         }
     }
 }
@@ -122,6 +91,21 @@ For Windows:
    - "Show me master games from this position after 2000"
    - "What are the most common moves played by masters in this position?"
 
+## Features
+
+### Position Analysis
+- Engine evaluation using Stockfish
+- Visual board representation
+- Best move suggestions
+- Move validation
+
+### Masters Database
+- Search positions in games played by 2200+ rated players
+- Filter games by date range
+- See win/draw statistics
+- View most common moves with success rates
+- Browse recent master games with player ratings
+
 ## Need Help?
 
 If you run into any issues:
@@ -132,22 +116,7 @@ If you run into any issues:
 
 ## Common Issues
 
-- **"Tools not showing up in Claude"**: Make sure you've built the project (`npm run build`) and configured Claude Desktop correctly
+- **"Tools not showing up in Claude"**: Make sure you've configured Claude Desktop correctly
 - **"Stockfish not found"**: Verify Stockfish is installed and accessible from the command line
 - **"Node version error"**: Make sure you have Node.js version 20 or higher installed
 - **"Canvas installation failed"**: Make sure Cairo is installed correctly for your operating system 
-
-## Features
-
-### Position Analysis
-- Engine evaluation using Stockfish
-- Visual board representation
-- Best move suggestions
-- Move Validation
-
-### Masters Database
-- Search positions in games played by 2200+ rated players
-- Filter games by date range
-- See win/draw statistics
-- View most common moves with success rates
-- Browse recent master games with player ratings 

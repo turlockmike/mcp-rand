@@ -7,9 +7,7 @@
   "bin": {
     "chess-mcp": "build/index.js"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
+  
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x build/index.js",
