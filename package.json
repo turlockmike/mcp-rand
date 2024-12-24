@@ -5,15 +5,14 @@
   "description": "Chess MCP server with position evaluation, move validation, and masters database",
   "main": "build/index.js",
   "bin": {
-    "chess-mcp": "build/index.js",
-    "chess-mcp-install": "build/install.js"
+    "chess-mcp": "build/index.js"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "chmod +x build/index.js build/install.js",
+    "postbuild": "chmod +x build/index.js",
     "start": "node build/index.js",
     "dev": "tsc -w",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
