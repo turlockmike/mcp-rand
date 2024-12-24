@@ -157,8 +157,6 @@ export class ChessEngine {
       movetime: timeLimit 
     } as SearchOptions);
 
-    console.log('Search result:', JSON.stringify(searchResult, null, 2));
-
     // Group info by multipv index to get the latest info for each line
     const pvInfoMap = new Map<number, EngineInfo>();
     searchResult.info.forEach((info: any) => {

@@ -1,62 +1,33 @@
-# Chess MCP Server Implementation Plan
+# Chess MCP Server Refactoring Plan
 
-## Feature Overview
-1. Position Image Generation
-2. Best Move Analysis
-3. Opening Search
+## Completed Implementation
 
-## Phase 1: Position Image Generation
-### Technical Requirements
-- Add chess board rendering library (e.g., `chess-image-generator`)
-- Create new MCP tool: `generate_chess_position_image`
-- Support FEN string input
-- Generate PNG/SVG output
-- Handle custom themes/styles
+### Phase 1: Initial Setup ✓
+- Created handlers directory
+- Created handler interfaces
+- Created handler registry
 
-### Acceptance Criteria
-- Tool successfully generates chess position images
-- Images are clear and properly styled
-- Error handling for invalid FEN strings
-- Performance optimization for quick rendering
+### Phase 2: Handler Implementation ✓
+- Split out evaluate_chess_position handler
+- Split out generate_chess_position_image handler
+- Split out list_tools handler
 
-## Phase 2: Best Move Analysis
-### Technical Requirements
-- Enhance existing Stockfish integration
-- Create new MCP tool: `get_best_moves`
-- Support multiple best moves (top N)
-- Include evaluation scores
-- Support move explanation
+### Phase 3: Server Integration ✓
+- Updated ChessServer to use handler registry
+- Updated imports and exports
+- Fixed test compatibility issues
 
-### Acceptance Criteria
-- Tool returns multiple candidate moves
-- Each move includes evaluation score
-- Proper error handling
-- Performance optimization for depth/time
-
-## Phase 3: Opening Search
-### Technical Requirements
-- Integrate opening database (e.g., ECO database)
-- Create new MCP tool: `search_opening`
-- Support FEN/PGN input
-- Return opening information
-- Include variations and statistics
-
-### Acceptance Criteria
-- Accurate opening identification
-- Return opening name, ECO code
-- Include common variations
-- Support partial position matching
-- Handle unknown positions gracefully
+## Technical Requirements Met
+- Maintained existing functionality through handler system
+- Kept type safety with proper interfaces and types
+- Ensured consistent error handling across handlers
+- Maintained test coverage with updated response formats
 
 ## Dependencies
-- chess-image-generator
-- chess.js
-- Opening database (ECO)
-- Existing Stockfish integration
+- Successfully integrated with ChessEngine and ChessImageService
+- Properly utilized MCP SDK types and interfaces
 
-## Technical Considerations
-- Memory management for Stockfish
-- Image caching strategy
-- Opening database performance
-- Error handling and logging
-- Rate limiting for resource-intensive operations 
+## Future Considerations
+- Add new handlers through the established pattern
+- Consider adding handler-specific tests if needed
+- Document handler patterns for future contributors

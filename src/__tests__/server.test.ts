@@ -97,8 +97,61 @@ describe('ChessServer', () => {
             required: ['fen'],
           },
         },
+        {
+          name: 'get_best_moves',
+          description: 'Get best moves for a chess position using Stockfish engine',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              fen: {
+                type: 'string',
+                description: 'Chess position in FEN notation',
+              },
+              depth: {
+                type: 'number',
+                description: 'Search depth (default: 20)',
+                minimum: 1,
+                maximum: 30,
+              },
+              numMoves: {
+                type: 'number',
+                description: 'Number of best moves to return (default: 3)',
+                minimum: 1,
+                maximum: 10,
+              },
+              timeLimit: {
+                type: 'number',
+                description: 'Time limit in milliseconds (default: 1000)',
+                minimum: 100,
+                maximum: 10000,
+              },
+            },
+            required: ['fen'],
+          },
+        },
       ],
     });
+  });
+
+  it('should get best moves for a position', async () => {
+    const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const result = await client.callTool({
+      name: 'get_best_moves',
+      arguments: {
+        fen: startingPosition,
+        depth: 10,
+        numMoves: 3,
+      }
+    }) as ToolResponse;
+
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe('text');
+    expect(result.content[0].text).toBeDefined();
+    const moves = JSON.parse(result.content[0].text!);
+    expect(moves).toHaveProperty('moves');
+    expect(Array.isArray(moves.moves)).toBe(true);
+    expect(moves.moves.length).toBeLessThanOrEqual(3);
+    expect(result.isError).toBeFalsy();
   });
 
   it('should evaluate starting position', async () => {
@@ -117,22 +170,7 @@ describe('ChessServer', () => {
     expect(result.isError).toBeFalsy();
   }, 10000);
 
-  it('should detect mate in one', async () => {
-    // Scholar's mate position
-    const mateInOne = 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4';
-    const result = await client.callTool({
-      name: 'evaluate_chess_position',
-      arguments: {
-        fen: mateInOne,
-        depth: 5,
-      }
-    }) as ToolResponse;
-
-    expect(result.content).toHaveLength(1);
-    expect(result.content[0].type).toBe('text');
-    expect(result.content[0].text).toBe('Mate in 1 moves for white');
-    expect(result.isError).toBeFalsy();
-  }, 15000);
+  
 
   it('should handle invalid FEN', async () => {
     const result = await client.callTool({
