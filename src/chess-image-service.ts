@@ -19,7 +19,6 @@ export class ChessImageService {
     this.generator = new ChessImageGenerator();
     this.sendLoggingMessage = sendLoggingMessage;
     const msg = 'ChessImageService initialized';
-    console.error(msg);
     this.sendLoggingMessage({
       level: "debug",
       data: msg
@@ -33,7 +32,6 @@ export class ChessImageService {
       if (!chess.validate_fen(fen).valid) {
         const error = 'Invalid FEN position';
         const meta = { fen };
-        console.error(error, meta);
         this.sendLoggingMessage({
           level: "error",
           data: error,
@@ -55,7 +53,6 @@ export class ChessImageService {
 
       const debugMsg = 'Generating chess position image';
       const debugMeta = { fen, options };
-      console.error(debugMsg, debugMeta);
       this.sendLoggingMessage({
         level: "debug",
         data: debugMsg,
@@ -67,7 +64,6 @@ export class ChessImageService {
 
       const successMsg = 'Chess position image generated successfully';
       const meta = { fen };
-      console.error(successMsg, meta);
       this.sendLoggingMessage({
         level: "debug",
         data: successMsg,

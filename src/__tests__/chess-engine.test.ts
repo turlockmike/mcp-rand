@@ -15,13 +15,10 @@ describe('ChessEngine', () => {
     })
   };
   
-  beforeEach(() => {
-    mockLogger.sendLoggingMessage.mockClear();
-  });
-  
-  const engine = new ChessEngine('/opt/homebrew/bin/stockfish', mockLogger.sendLoggingMessage);
+  let engine: ChessEngine;
 
   beforeAll(async () => {
+    engine = new ChessEngine('/opt/homebrew/bin/stockfish', mockLogger.sendLoggingMessage);
     await engine.init();
   }, 30000);
 

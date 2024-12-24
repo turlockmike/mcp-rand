@@ -44,9 +44,7 @@ export class ChessServer {
     );
 
     // Log to stderr only until connected
-    console.error('Initializing Chess MCP server');
 
-    // In tests, we want to use the mock server for components to avoid "Not connected" errors
     this.engine = new ChessEngine('/opt/homebrew/bin/stockfish', this.server.sendLoggingMessage.bind(this.server));
     this.imageService = new ChessImageService(this.server.sendLoggingMessage.bind(this.server));
     this.setupServer();
@@ -66,7 +64,6 @@ export class ChessServer {
 
     process.on('SIGINT', async () => {
       const msg = 'Received SIGINT signal, shutting down...';
-      console.error(msg);
       if (this.isConnected) {
         this.server.sendLoggingMessage({
           level: "info",
@@ -81,7 +78,6 @@ export class ChessServer {
   private setupServer() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       const msg = 'Handling ListTools request';
-      console.error(msg);
       if (this.isConnected) {
         this.server.sendLoggingMessage({
           level: "debug",
@@ -150,7 +146,6 @@ export class ChessServer {
         tool: request.params.name,
         arguments: request.params.arguments 
       };
-      console.error(msg, meta);
       if (this.isConnected) {
         this.server.sendLoggingMessage({
           level: "info",
@@ -183,7 +178,6 @@ export class ChessServer {
                 moveNumber: evaluation.moveNumber
               }
             };
-            console.error(successMsg, meta);
             if (this.isConnected) {
               this.server.sendLoggingMessage({
                 level: "info",
@@ -245,7 +239,6 @@ export class ChessServer {
 
             const successMsg = 'Position image generated successfully';
             const meta = { fen };
-            console.error(successMsg, meta);
             if (this.isConnected) {
               this.server.sendLoggingMessage({
                 level: "info",
@@ -321,7 +314,6 @@ export class ChessServer {
 
     if (!transport) {
       const msg = 'Chess MCP server running on stdio';
-      console.error(msg);
       this.server.sendLoggingMessage({
         level: "info",
         data: msg
@@ -331,7 +323,6 @@ export class ChessServer {
 
   async close() {
     const msg = 'Closing Chess MCP server';
-    console.error(msg);
     if (this.isConnected) {
       this.server.sendLoggingMessage({
         level: "info",

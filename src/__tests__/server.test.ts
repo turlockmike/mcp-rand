@@ -24,6 +24,7 @@ describe('ChessServer', () => {
   let clientTransport: InMemoryTransport;
 
   beforeAll(async () => {
+    server = new ChessServer();
     // Create transports first
     [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
     
@@ -32,23 +33,17 @@ describe('ChessServer', () => {
       { name: 'test-client', version: '1.0.0' },
       { capabilities: { tools: {} } }
     );
-    await client.connect(clientTransport);
 
-    // Create and start the server last
-    server = new ChessServer();
-    
-    // Set NODE_ENV to test to use mock server for components
-    process.env.NODE_ENV = 'test';
-    await server.run(serverTransport);
+    // Initialize server and client in parallel
+    await Promise.all([
+      server.run(serverTransport),
+      client.connect(clientTransport)
+    ]);
   }, 60000); // Increase timeout to 60 seconds
 
   afterAll(async () => {
-    if (client) {
-      await client.close();
-    }
-    if (server) {
-      await server.close();
-    }
+    await client.close();
+    await server.close();
   });
 
   it('should list available tools', async () => {
@@ -181,4 +176,4 @@ describe('ChessServer', () => {
     expect(resource.text).toBe('Chess position image');
     expect(result.isError).toBeFalsy();
   });
-}); 
+});

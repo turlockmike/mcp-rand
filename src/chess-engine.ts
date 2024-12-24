@@ -38,7 +38,6 @@ export class ChessEngine {
     this.sendLoggingMessage = sendLoggingMessage;
     const msg = 'ChessEngine initialized';
     const meta = { enginePath };
-    console.error(msg, meta);
     this.sendLoggingMessage({
       level: "debug",
       data: msg,
@@ -48,7 +47,6 @@ export class ChessEngine {
 
   async init(): Promise<void> {
     const msg = 'Initializing chess engine';
-    console.error(msg);
     this.sendLoggingMessage({
       level: "info",
       data: msg
@@ -58,7 +56,6 @@ export class ChessEngine {
     await this.engine.isready();
     this.engineReady = true;
     const successMsg = 'Chess engine initialized successfully';
-    console.error(successMsg);
     this.sendLoggingMessage({
       level: "info",
       data: successMsg
@@ -68,7 +65,6 @@ export class ChessEngine {
   async quit(): Promise<void> {
     if (this.engine) {
       const msg = 'Shutting down chess engine';
-      console.error(msg);
       this.sendLoggingMessage({
         level: "info",
         data: msg
@@ -77,7 +73,6 @@ export class ChessEngine {
       this.engine = null;
       this.engineReady = false;
       const successMsg = 'Chess engine shut down successfully';
-      console.error(successMsg);
       this.sendLoggingMessage({
         level: "info",
         data: successMsg
@@ -124,7 +119,6 @@ export class ChessEngine {
 
     const debugMsg = 'Evaluating position';
     const debugMeta = { fen, depth };
-    console.error(debugMsg, debugMeta);
     this.sendLoggingMessage({
       level: "debug",
       data: debugMsg,
@@ -175,7 +169,6 @@ export class ChessEngine {
         time: lastInfo.time
       }
     };
-    console.error(successMsg, meta);
     this.sendLoggingMessage({
       level: "debug",
       data: successMsg,
