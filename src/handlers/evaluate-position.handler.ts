@@ -1,6 +1,6 @@
 import { CallToolRequest, ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { Handler } from './types.js';
-import { ChessEngine } from '../chess-engine.js';
+import { ChessEngine, EvaluationResult, BestMovesResult } from '../chess-engine.js';
 
 export class EvaluatePositionHandler implements Handler<CallToolRequest> {
   constructor(private engine: ChessEngine) {}
@@ -9,13 +9,26 @@ export class EvaluatePositionHandler implements Handler<CallToolRequest> {
     const { fen, depth = 15 } = request.params.arguments as { fen: string; depth?: number };
 
     try {
-      const evaluation = await this.engine.evaluatePosition(fen, depth);
+      const result = await this.engine.evaluatePosition(fen, depth);
       let text: string;
 
-      if (evaluation.isMate && evaluation.moveNumber !== undefined) {
-        text = `Mate in ${Math.abs(evaluation.moveNumber)} moves for ${evaluation.score > 0 ? 'white' : 'black'}`;
+      // Check if it's a BestMovesResult
+      if ('moves' in result) {
+        const bestMove = result.moves[0];
+        if (!bestMove) {
+          text = 'No valid moves available';
+        } else if (bestMove.mate !== null) {
+          text = `Mate in ${Math.abs(bestMove.mate)} moves for ${bestMove.mate > 0 ? 'white' : 'black'}`;
+        } else {
+          text = `Evaluation: ${bestMove.score} pawns`;
+        }
       } else {
-        text = `Evaluation: ${evaluation.score} pawns`;
+        // It's an EvaluationResult
+        if (result.isMate && result.moveNumber !== undefined) {
+          text = `Mate in ${Math.abs(result.moveNumber)} moves for ${result.score > 0 ? 'white' : 'black'}`;
+        } else {
+          text = `Evaluation: ${result.score} pawns`;
+        }
       }
 
       return {

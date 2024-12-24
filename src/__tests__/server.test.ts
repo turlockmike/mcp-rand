@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { ImageContent } from '@modelcontextprotocol/sdk/types.js';
 import { ChessServer } from '../index.js';
 
 interface ToolResponse {
@@ -203,12 +204,11 @@ describe('ChessServer', () => {
     }) as ToolResponse;
 
     expect(result.content).toHaveLength(1);
-    const content = result.content[0];
-    expect(content.type).toBe('resource');
-    expect(content.resource).toBeDefined();
-    const resource = content.resource!;
-    expect(resource.uri).toMatch(/^data:image\/png;base64,/);
-    expect(resource.text).toBe('Chess position image');
+    const content = result.content[0] as ImageContent;
+    expect(content.type).toBe('image');
+    expect(content.data).toBeDefined();
+    expect(content.mimeType).toBe('image/png');
+    expect(content.data).toMatch(/^[A-Za-z0-9+/=]+$/); // Base64 format
     expect(result.isError).toBeFalsy();
   });
 });

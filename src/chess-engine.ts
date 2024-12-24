@@ -37,7 +37,7 @@ interface BestMove {
   isDraw: boolean;
 }
 
-interface BestMovesResult {
+export interface BestMovesResult {
   moves: BestMove[];
   position: string;
   depth: number;
@@ -75,48 +75,28 @@ export class ChessEngine {
     }
   }
 
-  async evaluatePosition(fen: string, depth: number = 15): Promise<EvaluationResult> {
-    if (!this.engine || !this.engineReady) {
-      throw new Error('Engine not initialized');
+  async evaluatePosition(fen: string, depth: number = 15, returnMoves?: number): Promise<EvaluationResult | BestMovesResult> {
+    const result = await this.getBestMoves(fen, {
+      depth,
+      numMoves: Math.max(returnMoves || 1, 1),
+      timeLimit: 1000
+    });
+
+    if (returnMoves && returnMoves > 0) {
+      return result;
     }
 
-    // Validate FEN
-    try {
-      const chess = new Chess();
-      if (!chess.validate_fen(fen).valid) {
-        throw new Error('Invalid FEN position');
-      }
-    } catch (error) {
-      throw new Error('Invalid FEN position');
-    }
-
-    await this.engine.position(fen);
-    const result = await this.engine.go({ depth });
-
-    // Get the last info with a score
-    const lastInfo = result.info[result.info.length - 1] as EngineInfo;
-    if (!lastInfo || !lastInfo.score) {
+    // Convert to EvaluationResult format
+    const bestMove = result.moves[0];
+    if (!bestMove) {
       throw new Error('No evaluation available');
     }
 
-    // Parse the score
-    const score = lastInfo.score;
-    let evaluation: EvaluationResult;
-
-    if (score.unit === 'mate') {
-      evaluation = {
-        score: score.value > 0 ? Infinity : -Infinity,
-        isMate: true,
-        moveNumber: Math.abs(score.value)
-      };
-    } else {
-      evaluation = {
-        score: score.value / 100, // Convert centipawns to pawns
-        isMate: false
-      };
-    }
-
-    return evaluation;
+    return {
+      score: bestMove.mate !== null ? (bestMove.mate > 0 ? Infinity : -Infinity) : bestMove.score,
+      isMate: bestMove.mate !== null,
+      moveNumber: bestMove.mate !== null ? Math.abs(bestMove.mate) : undefined
+    };
   }
 
   async getBestMoves(fen: string, options: {
@@ -150,23 +130,35 @@ export class ChessEngine {
 
     // Set UCI options for multi-PV analysis
     await this.engine.setoption('MultiPV', numMoves.toString());
+    await this.engine.isready(); // Wait for the engine to process the option
     
     await this.engine.position(fen);
+    await this.engine.isready(); // Wait for position to be set
+    
     const searchResult = await this.engine.go({ 
       depth, 
-      movetime: timeLimit 
+      movetime: timeLimit,
+      multipv: numMoves
     } as SearchOptions);
 
     // Group info by multipv index to get the latest info for each line
     const pvInfoMap = new Map<number, EngineInfo>();
     searchResult.info.forEach((info: any) => {
-      if (info.multipv && info.score) {
-        pvInfoMap.set(info.multipv, {
+      // Skip non-move info
+      if (!info.pv || !info.score || info.string) {
+        return;
+      }
+      
+      const multipv = info.multipv || 1;  // Default to 1 if not specified
+      // Only update if this is newer information for this line
+      const existing = pvInfoMap.get(multipv);
+      if (!existing || (info.depth && (!existing.depth || info.depth >= existing.depth))) {
+        pvInfoMap.set(multipv, {
           depth: info.depth,
           seldepth: info.seldepth,
           time: info.time,
           nodes: info.nodes,
-          pv: Array.isArray(info.pv) ? info.pv : [],
+          pv: Array.isArray(info.pv) ? info.pv : [info.pv],
           score: info.score,
           currmove: info.currmove,
           currmovenumber: info.currmovenumber
@@ -175,9 +167,9 @@ export class ChessEngine {
     });
 
     // Convert the search result to our expected format
-    const moves: BestMove[] = Array.from(pvInfoMap.values())
-      .filter((info: EngineInfo) => info.score && info.pv && info.pv.length > 0)
-      .map((info: EngineInfo) => {
+    const moves: BestMove[] = Array.from(pvInfoMap.entries())
+      .sort(([a], [b]) => a - b)  // Sort by multipv index
+      .map(([_, info]) => {
         const score = info.score!;
         return {
           move: info.pv![0],

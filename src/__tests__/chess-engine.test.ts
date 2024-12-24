@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { ChessEngine } from "../chess-engine.js";
+import { BestMovesResult, EvaluationResult } from "../chess-engine.js";
 
 describe('ChessEngine', () => {
   let engine: ChessEngine;
@@ -25,6 +26,59 @@ describe('ChessEngine', () => {
       isMate: false,
       score: expect.any(Number)
     }));
+  }, 10000);
+
+  it('should evaluate position with moves', async () => {
+    const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const result = await engine.evaluatePosition(startingPosition, 1, 3) as BestMovesResult;
+    
+    expect(result).toEqual(expect.objectContaining({
+      moves: expect.arrayContaining([
+        expect.objectContaining({
+          move: expect.any(String),
+          score: expect.any(Number),
+          mate: null,
+          isDraw: false
+        })
+      ]),
+      position: startingPosition,
+      depth: expect.any(Number),
+      nodes: expect.any(Number),
+      time: expect.any(Number)
+    }));
+    expect(result.moves.length).toBe(3);
+  }, 10000);
+
+  it('should evaluate position with single move', async () => {
+    const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const result = await engine.evaluatePosition(startingPosition, 1, 1) as BestMovesResult;
+    
+    expect(result).toEqual(expect.objectContaining({
+      moves: expect.arrayContaining([
+        expect.objectContaining({
+          move: expect.any(String),
+          score: expect.any(Number),
+          mate: null,
+          isDraw: false
+        })
+      ]),
+      position: startingPosition,
+      depth: expect.any(Number),
+      nodes: expect.any(Number),
+      time: expect.any(Number)
+    }));
+    expect(result.moves.length).toBe(1);
+  }, 10000);
+
+  it('should evaluate position with returnMoves=0', async () => {
+    const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const result = await engine.evaluatePosition(startingPosition, 1, 0) as EvaluationResult;
+    
+    expect(result).toEqual(expect.objectContaining({
+      isMate: false,
+      score: expect.any(Number)
+    }));
+    expect((result as any).moves).toBeUndefined();
   }, 10000);
 
   it('should detect mate in one', async () => {
@@ -75,7 +129,7 @@ describe('ChessEngine', () => {
         nodes: expect.any(Number),
         time: expect.any(Number)
       }));
-      expect(result.moves.length).toBeLessThanOrEqual(3);
+      expect(result.moves.length).toEqual(3);
     }, 15000);
 
     it('should handle stalemate position', async () => {
