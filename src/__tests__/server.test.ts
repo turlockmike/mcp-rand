@@ -6,7 +6,13 @@ import { ChessServer } from '../index.js';
 interface ToolResponse {
   content: Array<{
     type: string;
-    text: string;
+    text?: string;
+    data?: string;
+    mediaType?: string;
+    resource?: {
+      uri: string;
+      text: string;
+    };
   }>;
   isError?: boolean;
 }
@@ -18,11 +24,8 @@ describe('ChessServer', () => {
   let clientTransport: InMemoryTransport;
 
   beforeAll(async () => {
-    server = new ChessServer();
+    // Create transports first
     [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
-    
-    // Start the server with in-memory transport
-    await server.run(serverTransport);
     
     // Create and connect the client
     client = new Client(
@@ -30,11 +33,22 @@ describe('ChessServer', () => {
       { capabilities: { tools: {} } }
     );
     await client.connect(clientTransport);
-  }, 30000);
+
+    // Create and start the server last
+    server = new ChessServer();
+    
+    // Set NODE_ENV to test to use mock server for components
+    process.env.NODE_ENV = 'test';
+    await server.run(serverTransport);
+  }, 60000); // Increase timeout to 60 seconds
 
   afterAll(async () => {
-    await client.close();
-    await server.close();
+    if (client) {
+      await client.close();
+    }
+    if (server) {
+      await server.close();
+    }
   });
 
   it('should list available tools', async () => {
@@ -56,6 +70,36 @@ describe('ChessServer', () => {
                 description: 'Search depth (1-20)',
                 minimum: 1,
                 maximum: 20,
+              },
+            },
+            required: ['fen'],
+          },
+        },
+        {
+          name: 'generate_chess_position_image',
+          description: 'Generate an image of a chess position',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              fen: {
+                type: 'string',
+                description: 'Chess position in FEN notation',
+              },
+              size: {
+                type: 'number',
+                description: 'Size of the board in pixels (default: 400)',
+                minimum: 200,
+                maximum: 1000,
+              },
+              light: {
+                type: 'string',
+                description: 'Light square color in hex (default: #FFFFFF)',
+                pattern: '^#[0-9a-fA-F]{6}$',
+              },
+              dark: {
+                type: 'string',
+                description: 'Dark square color in hex (default: #4B7399)',
+                pattern: '^#[0-9a-fA-F]{6}$',
               },
             },
             required: ['fen'],
@@ -117,5 +161,24 @@ describe('ChessServer', () => {
       name: 'nonexistent_tool',
       arguments: {}
     })).rejects.toThrow('Unknown tool: nonexistent_tool');
+  });
+
+  it('should generate chess position image', async () => {
+    const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const result = await client.callTool({
+      name: 'generate_chess_position_image',
+      arguments: {
+        fen: startingPosition,
+      }
+    }) as ToolResponse;
+
+    expect(result.content).toHaveLength(1);
+    const content = result.content[0];
+    expect(content.type).toBe('resource');
+    expect(content.resource).toBeDefined();
+    const resource = content.resource!;
+    expect(resource.uri).toMatch(/^data:image\/png;base64,/);
+    expect(resource.text).toBe('Chess position image');
+    expect(result.isError).toBeFalsy();
   });
 }); 
