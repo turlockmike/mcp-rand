@@ -5,7 +5,8 @@ import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
-  McpError
+  McpError,
+  ImageContent
 } from '@modelcontextprotocol/sdk/types.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { ChessEngine } from './chess-engine.js';
@@ -166,16 +167,15 @@ export class ChessServer {
               dark,
             });
 
+            const imageContent: ImageContent = {
+              type: 'image',
+              data: imageBuffer.toString('base64'),
+              mimeType: 'image/png'
+            };
+
             return {
-              content: [
-                {
-                  type: 'resource',
-                  resource: {
-                    uri: 'data:image/png;base64,' + imageBuffer.toString('base64'),
-                    text: 'Chess position image'
-                  },
-                },
-              ],
+              content: [imageContent],
+              isError: false
             };
           } catch (error) {
             return {
