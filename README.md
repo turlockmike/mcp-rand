@@ -11,14 +11,25 @@ This tool helps you analyze chess positions and get professional evaluations usi
 - [Claude Desktop](https://claude.ai/desktop) installed on your computer
 - Git installed on your system
 
-## Quick Installation (Mac and Linux)
+## Quick Installation
 
-Open Terminal and run this command:
+### Using npx (Recommended)
+
+The easiest way to install is using npx:
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/turlockmike/chess-mcp/master/install.sh | bash
+npx chess-mcp-install
 ```
 
 That's it! The script will install all necessary dependencies and set up the Chess Assistant for you.
+
+### Using curl (Alternative)
+
+If you prefer, you can also install using curl:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/turlockmike/chess-mcp/master/install.sh | bash
+```
 
 ## Manual Installation (Windows or Advanced Users)
 
