@@ -4,6 +4,7 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}Chess Analysis Assistant Installer${NC}"
@@ -12,6 +13,25 @@ echo "=============================="
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check Node.js version
+check_node_version() {
+    if command_exists node; then
+        local version=$(node -v | cut -d'v' -f2)
+        local major_version=$(echo $version | cut -d'.' -f1)
+        if [ "$major_version" -ge 20 ]; then
+            echo -e "${GREEN}Node.js version $version is already installed and meets requirements${NC}"
+            return 0
+        else
+            echo -e "${YELLOW}Warning: Node.js version $version is installed but version 20 or higher is required."
+            echo -e "Please upgrade Node.js manually to version 20 or higher before continuing.${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${BLUE}Node.js is not installed, will install version 20${NC}"
+        return 1
+    fi
 }
 
 # Function to install Homebrew if needed
@@ -31,11 +51,17 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     
     # Install dependencies using Homebrew
     echo -e "${BLUE}Installing dependencies...${NC}"
-    brew install node@20 stockfish cairo pkg-config jq
     
-    # Link node@20
-    echo -e "${BLUE}Configuring Node.js...${NC}"
-    brew link node@20
+    # Only install Node.js if it's not present at all
+    if ! command_exists node; then
+        brew install node@20
+        brew link node@20
+    else
+        check_node_version
+    fi
+    
+    # Install other dependencies
+    brew install stockfish cairo pkg-config jq
     
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo -e "${GREEN}Detected Linux${NC}"
@@ -45,11 +71,16 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt-get update
     sudo apt-get install -y curl
     
-    # Install Node.js 20
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    # Only install Node.js if it's not present at all
+    if ! command_exists node; then
+        # Install Node.js 20
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    else
+        check_node_version
+    fi
     
-    # Install Stockfish and Cairo
+    # Install other dependencies
     sudo apt-get install -y stockfish libcairo2-dev pkg-config jq
     
 elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]]; then

@@ -3,6 +3,7 @@ import { Handler } from './types.js';
 import { toolSpec as evaluatePositionToolSpec } from './evaluate-position.handler.js';
 import { toolSpec as generateImageToolSpec } from './generate-image.handler.js';
 import { toolSpec as playMoveToolSpec } from './play-move.handler.js';
+import { toolSpec as mastersLookupToolSpec } from './masters-lookup.handler.js';
 
 export class ListToolsHandler implements Handler<ListToolsRequest> {
   async handle(): Promise<{
@@ -28,7 +29,8 @@ export class ListToolsHandler implements Handler<ListToolsRequest> {
       tools: [
         evaluatePositionToolSpec,
         generateImageToolSpec,
-        playMoveToolSpec
+        playMoveToolSpec,
+        mastersLookupToolSpec
       ],
     };
   }

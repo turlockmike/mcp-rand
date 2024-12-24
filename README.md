@@ -4,6 +4,7 @@ This tool helps you analyze chess positions and get professional evaluations usi
 - Get position evaluations
 - See visual board representations
 - Analyze different moves and variations
+- Look up positions in the masters database (games played by 2200+ rated players)
 
 ## Requirements
 
@@ -106,6 +107,9 @@ For Windows:
    - "Analyze this position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
    - "Show me the current position"
    - "What's the best move in this position?"
+   - "Look up this position in the masters database"
+   - "Show me master games from this position after 2000"
+   - "What are the most common moves played by masters in this position?"
 
 ## Need Help?
 
@@ -121,3 +125,18 @@ If you run into any issues:
 - **"Stockfish not found"**: Verify Stockfish is installed and accessible from the command line
 - **"Node version error"**: Make sure you have Node.js version 20 or higher installed
 - **"Canvas installation failed"**: Make sure Cairo is installed correctly for your operating system 
+
+## Features
+
+### Position Analysis
+- Engine evaluation using Stockfish
+- Visual board representation
+- Best move suggestions
+- Move Validation
+
+### Masters Database
+- Search positions in games played by 2200+ rated players
+- Filter games by date range
+- See win/draw statistics
+- View most common moves with success rates
+- Browse recent master games with player ratings 
