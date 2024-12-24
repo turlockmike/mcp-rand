@@ -1,7 +1,7 @@
 {
   "name": "chess-mcp",
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Chess MCP server with position evaluation, move validation, and masters database",
   "main": "build/index.js",
   "bin": {
