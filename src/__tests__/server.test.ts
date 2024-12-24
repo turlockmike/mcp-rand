@@ -64,6 +64,22 @@ describe('ChessServer', () => {
                 minimum: 1,
                 maximum: 20,
               },
+              numMoves: {
+                type: 'number',
+                description: 'Number of best moves to return',
+                minimum: 0,
+                maximum: 10,
+              },
+              timeLimit: {
+                type: 'number',
+                description: 'Time limit in milliseconds (default: 1000)',
+                minimum: 100,
+                maximum: 10000,
+              },
+              includeImage: {
+                type: 'boolean',
+                description: 'Whether to include an image of the position in the response',
+              },
             },
             required: ['fen'],
           },
@@ -98,38 +114,6 @@ describe('ChessServer', () => {
             required: ['fen'],
           },
         },
-        {
-          name: 'get_best_moves',
-          description: 'Get best moves for a chess position using Stockfish engine',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              fen: {
-                type: 'string',
-                description: 'Chess position in FEN notation',
-              },
-              depth: {
-                type: 'number',
-                description: 'Search depth (default: 20)',
-                minimum: 1,
-                maximum: 30,
-              },
-              numMoves: {
-                type: 'number',
-                description: 'Number of best moves to return (default: 3)',
-                minimum: 1,
-                maximum: 10,
-              },
-              timeLimit: {
-                type: 'number',
-                description: 'Time limit in milliseconds (default: 1000)',
-                minimum: 100,
-                maximum: 10000,
-              },
-            },
-            required: ['fen'],
-          },
-        },
       ],
     });
   });
@@ -137,11 +121,12 @@ describe('ChessServer', () => {
   it('should get best moves for a position', async () => {
     const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const result = await client.callTool({
-      name: 'get_best_moves',
+      name: 'evaluate_chess_position',
       arguments: {
         fen: startingPosition,
         depth: 10,
         numMoves: 3,
+        timeLimit: 1000
       }
     }) as ToolResponse;
 
@@ -171,7 +156,29 @@ describe('ChessServer', () => {
     expect(result.isError).toBeFalsy();
   }, 10000);
 
-  
+  it('should evaluate position with image', async () => {
+    const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const result = await client.callTool({
+      name: 'evaluate_chess_position',
+      arguments: {
+        fen: startingPosition,
+        depth: 1,
+        includeImage: true
+      }
+    }) as ToolResponse;
+
+    expect(result.content).toHaveLength(2);
+    // Check evaluation text
+    expect(result.content[0].type).toBe('text');
+    expect(result.content[0].text).toMatch(/Evaluation: [-\d.]+ pawns/);
+    // Check image
+    const imageContent = result.content[1] as ImageContent;
+    expect(imageContent.type).toBe('image');
+    expect(imageContent.data).toBeDefined();
+    expect(imageContent.mimeType).toBe('image/png');
+    expect(imageContent.data).toMatch(/^[A-Za-z0-9+/=]+$/); // Base64 format
+    expect(result.isError).toBeFalsy();
+  }, 10000);
 
   it('should handle invalid FEN', async () => {
     const result = await client.callTool({

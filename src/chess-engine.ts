@@ -32,6 +32,7 @@ interface EngineResult {
 
 interface BestMove {
   move: string;
+  algebraic: string;
   score: number;
   mate: number | null;
   isDraw: boolean;
@@ -92,8 +93,13 @@ export class ChessEngine {
       throw new Error('No evaluation available');
     }
 
+    // Convert score to our convention (positive means White is winning)
+    const score = bestMove.mate !== null ? 
+      (bestMove.mate > 0 ? Infinity : -Infinity) : 
+      bestMove.score;  // Keep UCI's White perspective
+
     return {
-      score: bestMove.mate !== null ? (bestMove.mate > 0 ? Infinity : -Infinity) : bestMove.score,
+      score,
       isMate: bestMove.mate !== null,
       moveNumber: bestMove.mate !== null ? Math.abs(bestMove.mate) : undefined
     };
@@ -171,10 +177,31 @@ export class ChessEngine {
       .sort(([a], [b]) => a - b)  // Sort by multipv index
       .map(([_, info]) => {
         const score = info.score!;
+        const uciMove = info.pv![0].split(' ')[0]; // Only take the first move
+        
+        // Convert UCI move to algebraic notation
+        // Create a new chess instance for each move to avoid state issues
+        const tempChess = new Chess(fen);
+        const move = tempChess.move({
+          from: uciMove.slice(0, 2),
+          to: uciMove.slice(2, 4),
+          promotion: uciMove.length > 4 ? uciMove[4] : undefined
+        });
+        const algebraic = move ? move.san : uciMove;
+
+        // Get the side to move from FEN
+        const isBlackToMove = fen.split(' ')[1] === 'b';
+        // Convert score to centipawns
+        const scoreValue = score.unit === 'cp' ? score.value / 100 : 0;
+        const mateValue = score.unit === 'mate' ? score.value : null;
+
+        // UCI returns scores from the engine's perspective (positive means good for side to move)
+        // We need to convert to White's perspective (positive means White is winning)
         return {
-          move: info.pv![0],
-          score: score.unit === 'cp' ? score.value / 100 : 0,
-          mate: score.unit === 'mate' ? score.value : null,
+          move: uciMove,
+          algebraic,
+          score: isBlackToMove ? -scoreValue : scoreValue,  // Negate for Black's moves
+          mate: mateValue,
           isDraw: false
         };
       });
@@ -183,10 +210,28 @@ export class ChessEngine {
     if (moves.length === 0 && searchResult.bestmove) {
       const lastInfo = searchResult.info[searchResult.info.length - 1] as EngineInfo;
       if (lastInfo && lastInfo.score) {
+        const uciMove = searchResult.bestmove.split(' ')[0]; // Only take the first move
+        
+        // Convert UCI move to algebraic notation
+        const tempChess = new Chess(fen);
+        const move = tempChess.move({
+          from: uciMove.slice(0, 2),
+          to: uciMove.slice(2, 4),
+          promotion: uciMove.length > 4 ? uciMove[4] : undefined
+        });
+        const algebraic = move ? move.san : uciMove;
+
+        // Get the side to move from FEN
+        const isBlackToMove = fen.split(' ')[1] === 'b';
+        // Convert score to centipawns
+        const scoreValue = lastInfo.score.unit === 'cp' ? lastInfo.score.value / 100 : 0;
+        const mateValue = lastInfo.score.unit === 'mate' ? lastInfo.score.value : null;
+
         moves.push({
-          move: searchResult.bestmove,
-          score: lastInfo.score.unit === 'cp' ? lastInfo.score.value / 100 : 0,
-          mate: lastInfo.score.unit === 'mate' ? lastInfo.score.value : null,
+          move: uciMove,
+          algebraic,
+          score: isBlackToMove ? -scoreValue : scoreValue,  // Negate for Black's moves
+          mate: mateValue,
           isDraw: false
         });
       }

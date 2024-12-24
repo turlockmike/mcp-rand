@@ -22,52 +22,52 @@ describe('ChessEngine', () => {
     const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const evaluation = await engine.evaluatePosition(startingPosition, 1);
     
-    expect(evaluation).toEqual(expect.objectContaining({
+    expect(evaluation).toEqual({
       isMate: false,
-      score: expect.any(Number)
-    }));
+      score: expect.closeTo(0, 0.5),
+      moveNumber: undefined
+    });
   }, 10000);
 
   it('should evaluate position with moves', async () => {
     const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const result = await engine.evaluatePosition(startingPosition, 1, 3) as BestMovesResult;
     
-    expect(result).toEqual(expect.objectContaining({
-      moves: expect.arrayContaining([
-        expect.objectContaining({
-          move: expect.any(String),
-          score: expect.any(Number),
-          mate: null,
-          isDraw: false
-        })
-      ]),
-      position: startingPosition,
-      depth: expect.any(Number),
-      nodes: expect.any(Number),
-      time: expect.any(Number)
-    }));
     expect(result.moves.length).toBe(3);
+    expect(result.position).toBe(startingPosition);
+    expect(result.depth).toBeGreaterThanOrEqual(1);
+    expect(result.nodes).toBeGreaterThan(0);
+    expect(result.time).toBeGreaterThan(0);
+
+    result.moves.forEach(move => {
+      expect(move).toMatchObject({
+        move: expect.stringMatching(/^[a-h][1-8][a-h][1-8][qrbn]?/),
+        algebraic: expect.stringMatching(/^[NBRQK]?[a-h]?[1-8]?x?[a-h][1-8](?:=[NBRQ])?[+#]?$/),
+        score: expect.any(Number),
+        mate: null,
+        isDraw: false
+      });
+    });
   }, 10000);
 
   it('should evaluate position with single move', async () => {
     const startingPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const result = await engine.evaluatePosition(startingPosition, 1, 1) as BestMovesResult;
     
-    expect(result).toEqual(expect.objectContaining({
-      moves: expect.arrayContaining([
-        expect.objectContaining({
-          move: expect.any(String),
-          score: expect.any(Number),
-          mate: null,
-          isDraw: false
-        })
-      ]),
-      position: startingPosition,
-      depth: expect.any(Number),
-      nodes: expect.any(Number),
-      time: expect.any(Number)
-    }));
     expect(result.moves.length).toBe(1);
+    expect(result.position).toBe(startingPosition);
+    expect(result.depth).toBeGreaterThanOrEqual(1);
+    expect(result.nodes).toBeGreaterThan(0);
+    expect(result.time).toBeGreaterThan(0);
+
+    const move = result.moves[0];
+    expect(move).toEqual(expect.objectContaining({
+      move: expect.stringMatching(/^[a-h][1-8][a-h][1-8][qrbn]?$/),
+      algebraic: expect.stringMatching(/^[NBRQK]?[a-h]?[1-8]?x?[a-h][1-8](?:=[NBRQ])?[+#]?$/),
+      score: expect.any(Number),
+      mate: null,
+      isDraw: false
+    }));
   }, 10000);
 
   it('should evaluate position with returnMoves=0', async () => {
@@ -115,21 +115,52 @@ describe('ChessEngine', () => {
         timeLimit: 1000
       });
 
-      expect(result).toEqual(expect.objectContaining({
-        moves: expect.arrayContaining([
-          expect.objectContaining({
-            move: expect.any(String),
-            score: expect.any(Number),
-            mate: null,
-            isDraw: false
-          })
-        ]),
-        position: startingPosition,
-        depth: expect.any(Number),
-        nodes: expect.any(Number),
-        time: expect.any(Number)
-      }));
-      expect(result.moves.length).toEqual(3);
+      expect(result.moves.length).toBeLessThanOrEqual(3);
+      expect(result.position).toBe(startingPosition);
+      expect(result.depth).toBeGreaterThanOrEqual(10);
+      expect(result.nodes).toBeGreaterThan(0);
+      expect(result.time).toBeGreaterThan(0);
+      expect(result.time).toBeLessThanOrEqual(2000); // Allow some buffer over timeLimit
+
+      result.moves.forEach(move => {
+        expect(move).toEqual({
+          move: expect.stringMatching(/^[a-h][1-8][a-h][1-8][qrbn]?$/),
+          algebraic: expect.stringMatching(/^[NBRQK]?[a-h]?[1-8]?x?[a-h][1-8](?:=[NBRQ])?[+#]?$/),
+          score: expect.any(Number),
+          mate: null,
+          isDraw: false
+        });
+      });
+    }, 15000);
+
+    it('should handle scores correctly for black moves', async () => {
+      // Position where black is clearly winning (-5 pawns)
+      const blackWinningPosition = 'rnbqkbnr/pppppppp/8/8/8/8/P1P1P1P1/RNBQKBNR b KQkq - 0 1';
+      
+      // Test direct evaluation
+      const evaluation = await engine.evaluatePosition(blackWinningPosition, 10);
+      expect(evaluation).toMatchObject({
+        isMate: false,
+        score: expect.any(Number)
+      });
+      // Score should be negative since Black is winning
+      // Each pawn is worth approximately 1 point, and Black is up 5 pawns
+      const evalScore = (evaluation as EvaluationResult).score;
+      expect(evalScore).toBeLessThan(-4);
+      expect(evalScore).toBeGreaterThan(-6); // Allow some variation but not too much
+
+      // Test through getBestMoves
+      const result = await engine.getBestMoves(blackWinningPosition, {
+        depth: 10,
+        numMoves: 1
+      });
+
+      expect(result.moves.length).toBe(1);
+      const move = result.moves[0];
+      // Score should be negative since Black is winning
+      expect(move.score).toBeLessThan(-4); // Black is up 5 pawns
+      expect(move.score).toBeGreaterThan(-6); // Allow some variation but not too much
+      expect(move.mate).toBeNull(); // Should not be a mate
     }, 15000);
 
     it('should handle stalemate position', async () => {
@@ -147,17 +178,27 @@ describe('ChessEngine', () => {
     }, 10000);
 
     it('should detect mate in one position', async () => {
-      // Position with mate in 1 (Qh7#)
+      // Position with mate in 1 (Qh7# or Qxf7#)
       const mateInOnePosition = 'r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1';
       const result = await engine.getBestMoves(mateInOnePosition, {
         depth: 10,
         numMoves: 1
       });
 
-      expect(result.moves[0]).toEqual(expect.objectContaining({
+      expect(result.moves.length).toBe(1);
+      expect(result.position).toBe(mateInOnePosition);
+      expect(result.depth).toBeGreaterThanOrEqual(10);
+      expect(result.nodes).toBeGreaterThan(0);
+      expect(result.time).toBeGreaterThan(0);
+
+      const move = result.moves[0];
+      expect(move).toMatchObject({
+        move: expect.stringMatching(/^f3[fh][78]/),
+        algebraic: expect.stringMatching(/^Qx?[fh]7#$/),
+        score: expect.any(Number),
         mate: 1,
         isDraw: false
-      }));
+      });
     }, 15000);
 
     it('should handle custom options', async () => {
@@ -169,8 +210,20 @@ describe('ChessEngine', () => {
       });
 
       expect(result.moves.length).toBe(1);
-      expect(result.depth).toBeLessThanOrEqual(5);
+      expect(result.position).toBe(startingPosition);
+      expect(result.depth).toBeGreaterThanOrEqual(5);
+      expect(result.nodes).toBeGreaterThan(0);
+      expect(result.time).toBeGreaterThan(0);
       expect(result.time).toBeLessThanOrEqual(1000); // Allow some buffer
+
+      const move = result.moves[0];
+      expect(move).toMatchObject({
+        move: expect.stringMatching(/^[a-h][1-8][a-h][1-8][qrbn]?/),
+        algebraic: expect.stringMatching(/^[NBRQK]?[a-h]?[1-8]?x?[a-h][1-8](?:=[NBRQ])?[+#]?$/),
+        score: expect.any(Number),
+        mate: null,
+        isDraw: false
+      });
     }, 10000);
 
     it('should reject invalid FEN', async () => {

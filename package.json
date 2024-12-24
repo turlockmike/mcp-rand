@@ -24,7 +24,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@types/chess.js": "^0.13.7",
-    "chess-image-generator": "^1.0.9",
+    "chess-fen2img": "^1.0.2",
     "chess.js": "^0.13.4",
     "node-uci": "^1.3.4",
     "winston": "^3.17.0"

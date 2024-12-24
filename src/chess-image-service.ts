@@ -1,20 +1,15 @@
-import ChessImageGenerator from 'chess-image-generator';
 import { Chess } from 'chess.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import ChessImageGenerator from 'chess-fen2img';
 
 export interface ImageGenerationOptions {
   size?: number;
   light?: string;
   dark?: string;
+  flip?: boolean;
 }
 
 export class ChessImageService {
-  private generator: ChessImageGenerator;
-
-  constructor() {
-    this.generator = new ChessImageGenerator();
-  }
-
   async generateImage(fen: string, options: ImageGenerationOptions = {}): Promise<Buffer> {
     try {
       // Validate FEN
@@ -23,16 +18,26 @@ export class ChessImageService {
         throw new Error('Invalid FEN position');
       }
 
-      // Set position and options
-      this.generator.loadFEN(fen);
-      if (options.size) this.generator.size = options.size;
-      if (options.light) this.generator.lightSquare = options.light;
-      if (options.dark) this.generator.darkSquare = options.dark;
-
       // Generate image
-      return await this.generator.generateBuffer();
+      const generator = new ChessImageGenerator({
+        size: options.size || 640,
+        dark: options.dark || '#B58863',
+        light: options.light || '#F0D9B5',
+        flipped: options.flip || fen.split(' ')[1] === 'b'
+      });
+
+      try {
+        await generator.loadFEN(fen);
+        return await generator.generateBuffer();
+      } catch (err) {
+        console.error('Error generating chess board image:', err);
+        throw new Error('Failed to generate chess board image');
+      }
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'Unknown error');
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Unknown error generating chess board image');
     }
   }
 } 
