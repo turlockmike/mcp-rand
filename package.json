@@ -1,8 +1,8 @@
 {
   "name": "chess-mcp",
   "type": "module",
-  "version": "1.0.0",
-  "description": "Chess MCP server with position evaluation",
+  "version": "0.0.1",
+  "description": "Chess MCP server with position evaluation, move validation, and masters database",
   "main": "build/index.js",
   "engines": {
     "node": ">=20.0.0"
@@ -19,7 +19,7 @@
     "mcp",
     "stockfish"
   ],
-  "author": "",
+  "author": "turlockmike",
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
