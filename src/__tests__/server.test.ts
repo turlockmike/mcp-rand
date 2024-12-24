@@ -25,21 +25,18 @@ describe('ChessServer', () => {
 
   beforeAll(async () => {
     server = new ChessServer();
-    // Create transports first
     [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
     
-    // Create and connect the client
     client = new Client(
       { name: 'test-client', version: '1.0.0' },
       { capabilities: { tools: {} } }
     );
 
-    // Initialize server and client in parallel
     await Promise.all([
       server.run(serverTransport),
       client.connect(clientTransport)
     ]);
-  }, 60000); // Increase timeout to 60 seconds
+  }, 60000);
 
   afterAll(async () => {
     await client.close();

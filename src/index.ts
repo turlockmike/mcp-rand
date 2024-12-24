@@ -43,33 +43,15 @@ export class ChessServer {
       }
     );
 
-    // Log to stderr only until connected
-
-    this.engine = new ChessEngine('/opt/homebrew/bin/stockfish', this.server.sendLoggingMessage.bind(this.server));
-    this.imageService = new ChessImageService(this.server.sendLoggingMessage.bind(this.server));
+    this.engine = new ChessEngine('/opt/homebrew/bin/stockfish');
+    this.imageService = new ChessImageService();
     this.setupServer();
     
-    // Error handling
     this.server.onerror = (error: CustomMcpError) => {
-      const errorMsg = `Server error: ${error.message}`;
-      console.error(errorMsg, { code: error.code, stack: error.stack });
-      if (this.isConnected) {
-        this.server.sendLoggingMessage({
-          level: "error",
-          data: errorMsg,
-          meta: { code: error.code, stack: error.stack }
-        });
-      }
+      console.error(`Server error: ${error.message}`, { code: error.code, stack: error.stack });
     };
 
     process.on('SIGINT', async () => {
-      const msg = 'Received SIGINT signal, shutting down...';
-      if (this.isConnected) {
-        this.server.sendLoggingMessage({
-          level: "info",
-          data: msg
-        });
-      }
       await this.close();
       process.exit(0);
     });
@@ -77,13 +59,6 @@ export class ChessServer {
 
   private setupServer() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const msg = 'Handling ListTools request';
-      if (this.isConnected) {
-        this.server.sendLoggingMessage({
-          level: "debug",
-          data: msg
-        });
-      }
       return {
         tools: [
           {
@@ -141,19 +116,6 @@ export class ChessServer {
     });
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-      const msg = 'Handling tool call request';
-      const meta = { 
-        tool: request.params.name,
-        arguments: request.params.arguments 
-      };
-      if (this.isConnected) {
-        this.server.sendLoggingMessage({
-          level: "info",
-          data: msg,
-          meta
-        });
-      }
-
       switch (request.params.name) {
         case 'evaluate_chess_position': {
           const { fen, depth = 15 } = request.params.arguments as { fen: string; depth?: number };
@@ -168,24 +130,6 @@ export class ChessServer {
               text = `Evaluation: ${evaluation.score} pawns`;
             }
 
-            const successMsg = 'Position evaluated successfully';
-            const meta = { 
-              fen,
-              depth,
-              evaluation: {
-                isMate: evaluation.isMate,
-                score: evaluation.score,
-                moveNumber: evaluation.moveNumber
-              }
-            };
-            if (this.isConnected) {
-              this.server.sendLoggingMessage({
-                level: "info",
-                data: successMsg,
-                meta
-              });
-            }
-
             return {
               content: [
                 {
@@ -195,21 +139,6 @@ export class ChessServer {
               ],
             };
           } catch (error) {
-            const errorMsg = 'Error evaluating position';
-            const meta = { 
-              error: error instanceof Error ? error.message : 'Unknown error',
-              fen,
-              depth
-            };
-            console.error(errorMsg, meta);
-            if (this.isConnected) {
-              this.server.sendLoggingMessage({
-                level: "error",
-                data: errorMsg,
-                meta
-              });
-            }
-
             return {
               content: [
                 {
@@ -237,16 +166,6 @@ export class ChessServer {
               dark,
             });
 
-            const successMsg = 'Position image generated successfully';
-            const meta = { fen };
-            if (this.isConnected) {
-              this.server.sendLoggingMessage({
-                level: "info",
-                data: successMsg,
-                meta
-              });
-            }
-
             return {
               content: [
                 {
@@ -259,20 +178,6 @@ export class ChessServer {
               ],
             };
           } catch (error) {
-            const errorMsg = 'Error generating position image';
-            const meta = {
-              error: error instanceof Error ? error.message : 'Unknown error',
-              fen,
-            };
-            console.error(errorMsg, meta);
-            if (this.isConnected) {
-              this.server.sendLoggingMessage({
-                level: "error",
-                data: errorMsg,
-                meta
-              });
-            }
-
             return {
               content: [
                 {
@@ -287,13 +192,6 @@ export class ChessServer {
 
         default: {
           const error = `Unknown tool: ${request.params.name}`;
-          console.error(error);
-          if (this.isConnected) {
-            this.server.sendLoggingMessage({
-              level: "error",
-              data: error
-            });
-          }
           throw new McpError(ErrorCode.MethodNotFound, error);
         }
       }
@@ -305,30 +203,9 @@ export class ChessServer {
     const serverTransport = transport || new StdioServerTransport();
     await this.server.connect(serverTransport);
     this.isConnected = true;
-    
-    // Now that we're connected, send the initialization message
-    this.server.sendLoggingMessage({
-      level: "info",
-      data: "Initializing Chess MCP server"
-    });
-
-    if (!transport) {
-      const msg = 'Chess MCP server running on stdio';
-      this.server.sendLoggingMessage({
-        level: "info",
-        data: msg
-      });
-    }
   }
 
   async close() {
-    const msg = 'Closing Chess MCP server';
-    if (this.isConnected) {
-      this.server.sendLoggingMessage({
-        level: "info",
-        data: msg
-      });
-    }
     await this.engine.quit();
     await this.server.close();
     this.isConnected = false;
@@ -339,11 +216,7 @@ export class ChessServer {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const server = new ChessServer();
   server.run().catch(error => {
-    const errorMsg = 'Failed to start server';
-    const meta = { error: error instanceof Error ? error.message : 'Unknown error' };
-    console.error(errorMsg, meta);
-    // Since we can't access the private server property, we'll just log to stderr
-    console.error('Server startup failed:', error);
+    console.error('Failed to start server:', error);
     process.exit(1);
   });
 }

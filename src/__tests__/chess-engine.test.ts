@@ -1,24 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { ChessEngine } from "../chess-engine.js";
 
-type LogLevel = "error" | "debug" | "info" | "notice" | "warning" | "critical" | "alert" | "emergency";
-
 describe('ChessEngine', () => {
-  const mockLogger = {
-    level: "",
-    data: "",
-    meta: {},
-    sendLoggingMessage: jest.fn(async (params: { level: LogLevel; data: unknown; meta?: Record<string, unknown> }) => {
-      mockLogger.level = params.level;
-      mockLogger.data = params.data as string;
-      mockLogger.meta = params.meta || {};
-    })
-  };
-  
   let engine: ChessEngine;
 
   beforeAll(async () => {
-    engine = new ChessEngine('/opt/homebrew/bin/stockfish', mockLogger.sendLoggingMessage);
+    engine = new ChessEngine('/opt/homebrew/bin/stockfish');
     await engine.init();
   }, 30000);
 
@@ -28,7 +15,6 @@ describe('ChessEngine', () => {
 
   it('should initialize successfully', () => {
     expect(engine.isReady()).toBe(true);
-    expect(mockLogger.sendLoggingMessage).toHaveBeenCalled();
   });
 
   it('should evaluate starting position', async () => {
@@ -39,7 +25,6 @@ describe('ChessEngine', () => {
       isMate: false,
       score: expect.any(Number)
     }));
-    expect(mockLogger.sendLoggingMessage).toHaveBeenCalled();
   }, 10000);
 
   it('should detect mate in one', async () => {
@@ -52,15 +37,11 @@ describe('ChessEngine', () => {
       score: Infinity,
       moveNumber: 1
     });
-    expect(mockLogger.sendLoggingMessage).toHaveBeenCalled();
   }, 15000);
 
   it('should reject invalid FEN', async () => {
     const invalidFen = 'invalid-fen-string';
     await expect(engine.evaluatePosition(invalidFen)).rejects.toThrow();
-    expect(mockLogger.sendLoggingMessage).toHaveBeenCalledWith(expect.objectContaining({
-      level: "error"
-    }));
   }, 10000);
 
   it('should handle depth parameter', async () => {
@@ -69,6 +50,5 @@ describe('ChessEngine', () => {
     
     // Depth 1 should return quickly
     expect(evaluation).toBeDefined();
-    expect(mockLogger.sendLoggingMessage).toHaveBeenCalled();
   }, 10000);
 });

@@ -14,4 +14,9 @@ export default {
       },
     ],
   },
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/build/',
+    '\\.d\\.ts$'
+  ],
 }; 
