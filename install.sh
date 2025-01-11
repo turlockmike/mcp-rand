@@ -34,6 +34,10 @@ check_node_version() {
     fi
 }
 
+get_npx_path() {
+    return $(which npx)
+}
+
 # Function to install Homebrew if needed
 install_homebrew() {
     if ! command_exists brew; then
@@ -113,7 +117,7 @@ CONFIG_FILE="$CLAUDE_CONFIG_DIR/claude_desktop_config.json"
 
 # Prepare the chess server configuration
 CHESS_CONFIG="{
-    \"command\": \"npx\",
+    \"command\": \"$(get_npx_path)\",
     \"args\": [
         \"-y\",
         \"chess-mcp\"
@@ -151,7 +155,7 @@ fi
 
 # Install the chess-mcp package globally
 echo -e "${BLUE}Installing chess-mcp package globally...${NC}"
-npm install -g chess-mcp
+npm install -g chess-mcp@latest
 
 echo -e "${GREEN}Installation complete!${NC}"
 echo -e "${BLUE}Please restart Claude Desktop to use the Chess Analysis Assistant.${NC}" 
