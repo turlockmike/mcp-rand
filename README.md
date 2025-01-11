@@ -5,6 +5,8 @@
 
 A Model Context Protocol (MCP) server providing various random generation utilities, including UUID, numbers, strings, passwords, Gaussian distribution, dice rolling, and card drawing.
 
+<a href="https://glama.ai/mcp/servers/ccd6b0hni8"><img width="380" height="200" src="https://glama.ai/mcp/servers/ccd6b0hni8/badge" alt="Rand MCP server" /></a>
+
 ## Installation
 
 ```bash
