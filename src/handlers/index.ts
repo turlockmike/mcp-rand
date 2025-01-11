@@ -6,3 +6,4 @@ export { generateGaussianHandler, toolSpec as generateGaussianToolSpec } from '.
 export { generateStringHandler, toolSpec as generateStringToolSpec } from './generate-string.handler.js';
 export { generatePasswordHandler, toolSpec as generatePasswordToolSpec } from './generate-password.handler.js';
 export { rollDiceHandler, toolSpec as rollDiceToolSpec } from './roll-dice.handler.js';
+export { drawCardsHandler, toolSpec as drawCardsToolSpec } from './draw-cards.handler.js';

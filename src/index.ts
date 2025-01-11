@@ -1,65 +1,66 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { Handler, HandlerRegistry, SimpleHandlerRegistry } from './handlers/types.js';
 import {
   ListToolsHandler,
   generateUuidHandler,
-  generateUuidToolSpec,
   generateRandomNumberHandler,
-  generateRandomNumberToolSpec,
   generateGaussianHandler,
-  generateGaussianToolSpec,
   generateStringHandler,
-  generateStringToolSpec,
   generatePasswordHandler,
-  generatePasswordToolSpec,
   rollDiceHandler,
-  rollDiceToolSpec
+  drawCardsHandler
 } from './handlers/index.js';
 
-const server = new Server(
-  {
-    name: 'mcp-rand',
-    version: '0.0.1',
-  },
-  {
-    capabilities: {
-      tools: {
-        [generateUuidToolSpec.name]: generateUuidHandler,
-        [generateRandomNumberToolSpec.name]: generateRandomNumberHandler,
-        [generateGaussianToolSpec.name]: generateGaussianHandler,
-        [generateStringToolSpec.name]: generateStringHandler,
-        [generatePasswordToolSpec.name]: generatePasswordHandler,
-        [rollDiceToolSpec.name]: rollDiceHandler
-      }
+async function registerHandlers(registry: HandlerRegistry): Promise<void> {
+  registry.register('tools/list', ListToolsHandler as Handler);
+  registry.register('tools/call', generateUuidHandler as Handler);
+  registry.register('tools/call', generateRandomNumberHandler as Handler);
+  registry.register('tools/call', generateGaussianHandler as Handler);
+  registry.register('tools/call', generateStringHandler as Handler);
+  registry.register('tools/call', generatePasswordHandler as Handler);
+  registry.register('tools/call', rollDiceHandler as Handler);
+  registry.register('tools/call', drawCardsHandler as Handler);
+}
+
+async function main() {
+  const registry = new SimpleHandlerRegistry();
+  await registerHandlers(registry);
+
+  const server = new Server(
+    {
+      name: 'mcp-rand',
+      version: '0.1.2',
+    },
+    {
+      capabilities: {
+        tools: {},
+      },
     }
-  }
-);
+  );
 
-// Register handlers with proper method names
-server.setRequestHandler(ListToolsRequestSchema, ListToolsHandler);
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  switch (request.params.name) {
-    case generateUuidToolSpec.name:
-      return generateUuidHandler(request);
-    case generateRandomNumberToolSpec.name:
-      return generateRandomNumberHandler(request);
-    case generateGaussianToolSpec.name:
-      return generateGaussianHandler(request);
-    case generateStringToolSpec.name:
-      return generateStringHandler(request);
-    case generatePasswordToolSpec.name:
-      return generatePasswordHandler(request);
-    case rollDiceToolSpec.name:
-      return rollDiceHandler(request);
-    default:
-      throw new Error(`Unknown tool: ${request.params.name}`);
-  }
-});
+  server.setRequestHandler(ListToolsRequestSchema, (request) => {
+    const handler = registry.get('tools/list');
+    if (handler) {
+      return handler(request) as Promise<{ tools: unknown[] }>;
+    }
+    throw new Error('Handler not found');
+  });
 
-// Connect to stdio transport
-const transport = new StdioServerTransport();
-server.connect(transport).catch(console.error);
+  server.setRequestHandler(CallToolRequestSchema, (request) => {
+    const handler = registry.get('tools/call');
+    if (handler) {
+      return handler(request) as Promise<{ content: { type: string; text: string }[] }>;
+    }
+    throw new Error('Handler not found');
+  });
 
-console.error('MCP Rand server running on stdio');
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+
+  console.error('MCP server running on stdio');
+}
+
+main().catch(console.error);
