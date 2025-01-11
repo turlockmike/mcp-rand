@@ -5,7 +5,15 @@ import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprot
 import {
   ListToolsHandler,
   generateUuidHandler,
-  generateUuidToolSpec
+  generateUuidToolSpec,
+  generateRandomNumberHandler,
+  generateRandomNumberToolSpec,
+  generateGaussianHandler,
+  generateGaussianToolSpec,
+  generateStringHandler,
+  generateStringToolSpec,
+  generatePasswordHandler,
+  generatePasswordToolSpec
 } from './handlers/index.js';
 
 const server = new Server(
@@ -16,7 +24,11 @@ const server = new Server(
   {
     capabilities: {
       tools: {
-        [generateUuidToolSpec.name]: generateUuidHandler
+        [generateUuidToolSpec.name]: generateUuidHandler,
+        [generateRandomNumberToolSpec.name]: generateRandomNumberHandler,
+        [generateGaussianToolSpec.name]: generateGaussianHandler,
+        [generateStringToolSpec.name]: generateStringHandler,
+        [generatePasswordToolSpec.name]: generatePasswordHandler
       }
     }
   }
@@ -24,7 +36,22 @@ const server = new Server(
 
 // Register handlers with proper method names
 server.setRequestHandler(ListToolsRequestSchema, ListToolsHandler);
-server.setRequestHandler(CallToolRequestSchema, generateUuidHandler);
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  switch (request.params.name) {
+    case generateUuidToolSpec.name:
+      return generateUuidHandler(request);
+    case generateRandomNumberToolSpec.name:
+      return generateRandomNumberHandler(request);
+    case generateGaussianToolSpec.name:
+      return generateGaussianHandler(request);
+    case generateStringToolSpec.name:
+      return generateStringHandler(request);
+    case generatePasswordToolSpec.name:
+      return generatePasswordHandler(request);
+    default:
+      throw new Error(`Unknown tool: ${request.params.name}`);
+  }
+});
 
 // Connect to stdio transport
 const transport = new StdioServerTransport();

@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/mcp-rand.svg)](https://www.npmjs.com/package/mcp-rand)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
-A Model Context Protocol (MCP) server providing random number generation utilities, starting with a UUID generator.
+A Model Context Protocol (MCP) server providing various random generation utilities, including UUID, numbers, strings, passwords, and Gaussian distribution.
 
 ## Installation
 
@@ -22,7 +22,33 @@ npm install -g mcp-rand
 ### UUID Generator
 - Generates RFC 4122 version 4 UUIDs
 - Uses Node's native crypto module for secure random generation
-- Simple interface with no required parameters
+- No parameters required
+
+### Random Number Generator
+- Generates random numbers within a specified range
+- Configurable minimum and maximum values (inclusive)
+- Defaults to range 0-100 if no parameters provided
+
+### Gaussian Random Generator
+- Generates random numbers following a Gaussian (normal) distribution
+- Normalized to range 0-1
+- No parameters required
+
+### Random String Generator
+- Generates random strings with configurable length and character sets
+- Supports multiple character sets:
+  * alphanumeric (default): A-Z, a-z, 0-9
+  * numeric: 0-9
+  * lowercase: a-z
+  * uppercase: A-Z
+  * special: !@#$%^&*()_+-=[]{};\'"\\|,.<>/?
+- Configurable string length (defaults to 10)
+
+### Password Generator
+- Generates strong passwords with a mix of character types
+- Ensures at least one character from each type (uppercase, lowercase, numbers, special)
+- Configurable length (minimum 8, default 16)
+- WARNING: While passwords are generated locally, it's recommended to use a dedicated password manager
 
 ## Usage
 
@@ -51,29 +77,39 @@ Add to your MCP client configuration:
 
 ### Example Usage
 
-Using the UUID generator:
-
 ```typescript
-// MCP client request
-const result = await client.callTool('generate_uuid', {});
-console.log(result); // e.g., "550e8400-e29b-41d4-a716-446655440000"
+// Generate UUID
+const uuid = await client.callTool('generate_uuid', {});
+console.log(uuid); // e.g., "550e8400-e29b-41d4-a716-446655440000"
+
+// Generate random number
+const number = await client.callTool('generate_random_number', {
+  min: 1,
+  max: 100
+});
+console.log(number); // e.g., 42
+
+// Generate Gaussian random number
+const gaussian = await client.callTool('generate_gaussian', {});
+console.log(gaussian); // e.g., 0.6827
+
+// Generate random string
+const string = await client.callTool('generate_string', {
+  length: 15,
+  charset: 'alphanumeric'
+});
+console.log(string); // e.g., "aB9cD8eF7gH6iJ5"
+
+// Generate password
+const password = await client.callTool('generate_password', {
+  length: 20
+});
+console.log(password); // e.g., "aB9#cD8$eF7@gH6*iJ5"
 ```
 
-## Development
+## Contributing
 
-```bash
-# Install dependencies
-npm install
-
-# Build
-npm run build
-
-# Run tests
-npm test
-
-# Start the server
-npm start
-```
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
