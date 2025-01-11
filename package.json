@@ -2,7 +2,7 @@
   "name": "mcp-tools",
   "type": "module",
   "version": "0.0.1",
-  "description": "MCP server providing utility tools like UUID generation",
+  "description": "MCP server providing random generation utility tools like UUID generation",
   "main": "build/index.js",
   "bin": {
     "mcp-tools": "build/index.js"
