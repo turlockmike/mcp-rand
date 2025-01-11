@@ -5,3 +5,4 @@ export { generateRandomNumberHandler, toolSpec as generateRandomNumberToolSpec }
 export { generateGaussianHandler, toolSpec as generateGaussianToolSpec } from './generate-gaussian.handler.js';
 export { generateStringHandler, toolSpec as generateStringToolSpec } from './generate-string.handler.js';
 export { generatePasswordHandler, toolSpec as generatePasswordToolSpec } from './generate-password.handler.js';
+export { rollDiceHandler, toolSpec as rollDiceToolSpec } from './roll-dice.handler.js';

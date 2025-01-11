@@ -50,6 +50,12 @@ npm install -g mcp-rand
 - Configurable length (minimum 8, default 16)
 - WARNING: While passwords are generated locally, it's recommended to use a dedicated password manager
 
+### Dice Roller
+- Roll multiple dice using standard dice notation
+- Supports notation like "2d6" (two six-sided dice), "1d20" (one twenty-sided die)
+- Returns individual rolls and total for each set of dice
+- Can roll multiple different dice sets at once (e.g., "2d6", "1d20", "4d4")
+
 ## Usage
 
 ### As a CLI Tool
@@ -105,6 +111,31 @@ const password = await client.callTool('generate_password', {
   length: 20
 });
 console.log(password); // e.g., "aB9#cD8$eF7@gH6*iJ5"
+
+// Roll dice
+const rolls = await client.callTool('roll_dice', {
+  dice: ['2d6', '1d20', '4d4']
+});
+console.log(rolls);
+/* Output example:
+[
+  {
+    "dice": "2d6",
+    "rolls": [3, 1],
+    "total": 4
+  },
+  {
+    "dice": "1d20",
+    "rolls": [4],
+    "total": 4
+  },
+  {
+    "dice": "4d4",
+    "rolls": [2, 3, 2, 3],
+    "total": 10
+  }
+]
+*/
 ```
 
 ## Contributing

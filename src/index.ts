@@ -13,7 +13,9 @@ import {
   generateStringHandler,
   generateStringToolSpec,
   generatePasswordHandler,
-  generatePasswordToolSpec
+  generatePasswordToolSpec,
+  rollDiceHandler,
+  rollDiceToolSpec
 } from './handlers/index.js';
 
 const server = new Server(
@@ -28,7 +30,8 @@ const server = new Server(
         [generateRandomNumberToolSpec.name]: generateRandomNumberHandler,
         [generateGaussianToolSpec.name]: generateGaussianHandler,
         [generateStringToolSpec.name]: generateStringHandler,
-        [generatePasswordToolSpec.name]: generatePasswordHandler
+        [generatePasswordToolSpec.name]: generatePasswordHandler,
+        [rollDiceToolSpec.name]: rollDiceHandler
       }
     }
   }
@@ -48,6 +51,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return generateStringHandler(request);
     case generatePasswordToolSpec.name:
       return generatePasswordHandler(request);
+    case rollDiceToolSpec.name:
+      return rollDiceHandler(request);
     default:
       throw new Error(`Unknown tool: ${request.params.name}`);
   }
