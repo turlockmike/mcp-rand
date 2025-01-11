@@ -1,7 +1,7 @@
-import { Request } from '@modelcontextprotocol/sdk/types.js';
+import type { Request } from '@modelcontextprotocol/sdk/types.js';
 
 export interface Handler<T extends Request = Request> {
-  handle(request: T): Promise<any>;
+  (request: T): Promise<unknown>;
 }
 
 export interface HandlerRegistry {
