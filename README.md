@@ -1,6 +1,6 @@
-# MCP Tools
+# MCP Rand
 
-A Model Context Protocol (MCP) server providing utility tools, currently featuring a UUID generator.
+A Model Context Protocol (MCP) server providing random number generation utilities, starting with a UUID generator.
 
 ## Features
 
@@ -12,7 +12,7 @@ A Model Context Protocol (MCP) server providing utility tools, currently featuri
 ## Installation
 
 ```bash
-npm install mcp-tools
+npm install mcp-rand
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ npm install mcp-tools
 ### As a CLI Tool
 
 ```bash
-npx mcp-tools
+npx mcp-rand
 ```
 
 ### Integration with MCP Clients
@@ -30,9 +30,9 @@ Add to your MCP client configuration:
 ```json
 {
   "mcpServers": {
-    "mcp-tools": {
+    "mcp-rand": {
       "command": "node",
-      "args": ["path/to/mcp-tools/build/index.js"],
+      "args": ["path/to/mcp-rand/build/index.js"],
       "disabled": false,
       "alwaysAllow": []
     }

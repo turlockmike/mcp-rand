@@ -10,7 +10,7 @@ import {
 
 const server = new Server(
   {
-    name: 'mcp-tools',
+    name: 'mcp-rand',
     version: '0.0.1',
   },
   {
@@ -30,4 +30,4 @@ server.setRequestHandler(CallToolRequestSchema, generateUuidHandler);
 const transport = new StdioServerTransport();
 server.connect(transport).catch(console.error);
 
-console.error('MCP Tools server running on stdio');
+console.error('MCP Rand server running on stdio');
