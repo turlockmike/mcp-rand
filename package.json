@@ -1,8 +1,8 @@
 {
   "name": "mcp-rand",
   "type": "module",
-  "version": "0.1.2",
-  "description": "MCP server providing random generation utilities including UUID, numbers, strings, passwords, and Gaussian distribution",
+  "version": "0.2.0",
+  "description": "MCP server providing random generation utilities including UUID, numbers, strings, passwords, Gaussian distribution, dice rolling, and card drawing",
   "main": "build/index.js",
   "bin": {
     "mcp-rand": "build/index.js"
@@ -33,7 +33,10 @@
     "string",
     "generator",
     "tools",
-    "utilities"
+    "utilities",
+    "dice",
+    "cards",
+    "deck"
   ],
   "author": "turlockmike",
   "license": "ISC",

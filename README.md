@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/mcp-rand.svg)](https://www.npmjs.com/package/mcp-rand)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
-A Model Context Protocol (MCP) server providing various random generation utilities, including UUID, numbers, strings, passwords, and Gaussian distribution.
+A Model Context Protocol (MCP) server providing various random generation utilities, including UUID, numbers, strings, passwords, Gaussian distribution, dice rolling, and card drawing.
 
 ## Installation
 
@@ -55,6 +55,13 @@ npm install -g mcp-rand
 - Supports notation like "2d6" (two six-sided dice), "1d20" (one twenty-sided die)
 - Returns individual rolls and total for each set of dice
 - Can roll multiple different dice sets at once (e.g., "2d6", "1d20", "4d4")
+
+### Card Drawer
+- Draw cards from a standard 52-card deck
+- Maintains deck state between draws using base64 encoding
+- Returns drawn cards and remaining deck state
+- Supports drawing any number of cards up to the deck size
+- Properly shuffles available cards before each draw
 
 ## Usage
 
@@ -135,6 +142,43 @@ console.log(rolls);
     "total": 10
   }
 ]
+*/
+
+// Draw cards
+const draw1 = await client.callTool('draw_cards', {
+  count: 5
+});
+console.log(draw1);
+/* Output example:
+{
+  "drawnCards": [
+    { "suit": "hearts", "value": "A" },
+    { "suit": "diamonds", "value": "7" },
+    { "suit": "clubs", "value": "K" },
+    { "suit": "spades", "value": "2" },
+    { "suit": "hearts", "value": "10" }
+  ],
+  "remainingCount": 47,
+  "deckState": "t//+///bDw=="
+}
+*/
+
+// Draw more cards using previous deck state
+const draw2 = await client.callTool('draw_cards', {
+  count: 3,
+  deckState: draw1.deckState
+});
+console.log(draw2);
+/* Output example:
+{
+  "drawnCards": [
+    { "suit": "diamonds", "value": "Q" },
+    { "suit": "clubs", "value": "5" },
+    { "suit": "spades", "value": "J" }
+  ],
+  "remainingCount": 44,
+  "deckState": "l//+//zbDw=="
+}
 */
 ```
 
