@@ -4,7 +4,7 @@ import { CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 type CallToolRequest = typeof CallToolRequestSchema._output;
 
 describe('rollDiceHandler', () => {
-  it('should roll a single die', async () => {
+  it('should roll a single die with no modifier', async () => {
     const request: CallToolRequest = {
       method: 'tools/call',
       params: {
@@ -151,5 +151,111 @@ describe('rollDiceHandler', () => {
     };
 
     await expect(rollDiceHandler(request)).rejects.toThrow('Must specify at least one die to roll');
+  });
+
+  it('should handle positive modifiers', async () => {
+    const request: CallToolRequest = {
+      method: 'tools/call',
+      params: {
+        name: 'roll_dice',
+        arguments: {
+          dice: ['2d6+5']
+        }
+      }
+    };
+
+    const result = await rollDiceHandler(request);
+    const roll = result.content[0].text as string;
+    const parsed = JSON.parse(roll);
+    
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].dice).toBe('2d6+5');
+    expect(parsed[0].rolls).toHaveLength(2);
+    parsed[0].rolls.forEach((value: number) => {
+      expect(value).toBeGreaterThanOrEqual(1);
+      expect(value).toBeLessThanOrEqual(6);
+    });
+    const rollSum = parsed[0].rolls.reduce((a: number, b: number) => a + b, 0);
+    expect(parsed[0].modifier).toBe(5);
+    expect(parsed[0].total).toBe(rollSum + 5);
+  });
+
+  it('should handle negative modifiers', async () => {
+    const request: CallToolRequest = {
+      method: 'tools/call',
+      params: {
+        name: 'roll_dice',
+        arguments: {
+          dice: ['3d4-2']
+        }
+      }
+    };
+
+    const result = await rollDiceHandler(request);
+    const roll = result.content[0].text as string;
+    const parsed = JSON.parse(roll);
+    
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].dice).toBe('3d4-2');
+    expect(parsed[0].rolls).toHaveLength(3);
+    parsed[0].rolls.forEach((value: number) => {
+      expect(value).toBeGreaterThanOrEqual(1);
+      expect(value).toBeLessThanOrEqual(4);
+    });
+    const rollSum = parsed[0].rolls.reduce((a: number, b: number) => a + b, 0);
+    expect(parsed[0].modifier).toBe(-2);
+    expect(parsed[0].total).toBe(rollSum - 2);
+  });
+
+  it('should handle multiple dice with modifiers', async () => {
+    const request: CallToolRequest = {
+      method: 'tools/call',
+      params: {
+        name: 'roll_dice',
+        arguments: {
+          dice: ['2d6+3', '1d20-1', '4d4+5']
+        }
+      }
+    };
+
+    const result = await rollDiceHandler(request);
+    const roll = result.content[0].text as string;
+    const parsed = JSON.parse(roll);
+    
+    expect(parsed).toHaveLength(3);
+    
+    // Check 2d6+3
+    expect(parsed[0].dice).toBe('2d6+3');
+    expect(parsed[0].rolls).toHaveLength(2);
+    expect(parsed[0].modifier).toBe(3);
+    const sum1 = parsed[0].rolls.reduce((a: number, b: number) => a + b, 0);
+    expect(parsed[0].total).toBe(sum1 + 3);
+    
+    // Check 1d20-1
+    expect(parsed[1].dice).toBe('1d20-1');
+    expect(parsed[1].rolls).toHaveLength(1);
+    expect(parsed[1].modifier).toBe(-1);
+    expect(parsed[1].total).toBe(parsed[1].rolls[0] - 1);
+    
+    // Check 4d4+5
+    expect(parsed[2].dice).toBe('4d4+5');
+    expect(parsed[2].rolls).toHaveLength(4);
+    expect(parsed[2].modifier).toBe(5);
+    const sum3 = parsed[2].rolls.reduce((a: number, b: number) => a + b, 0);
+    expect(parsed[2].total).toBe(sum3 + 5);
+  });
+
+  it('should throw error for invalid modifier format', async () => {
+    const request: CallToolRequest = {
+      method: 'tools/call',
+      params: {
+        name: 'roll_dice',
+        arguments: {
+          dice: ['2d6++5']
+        }
+      }
+    };
+
+    await expect(rollDiceHandler(request)).rejects.toThrow('Invalid dice notation');
   });
 });

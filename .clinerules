@@ -1,3 +1,4 @@
 DO NOT ADD THE .agent folder, it is gitignored, only use for notes.
+DO NOT PUBLISH without the user telling you to explicitly
 
 When adding a new tool, be sure to add it to the list-tools.handler.ts file and to index.ts

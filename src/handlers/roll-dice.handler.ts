@@ -6,12 +6,13 @@ type CallToolResult = typeof CallToolResultSchema._output;
 interface DiceRoll {
   dice: string;
   rolls: number[];
+  modifier: number;
   total: number;
 }
 
 export const toolSpec = {
   name: 'roll_dice',
-  description: 'Roll a set of dice using standard dice notation (e.g., "2d6" for two six-sided dice)',
+  description: 'Roll a set of dice using standard dice notation (e.g., "2d6" for two six-sided dice, "3d6+5" for three six-sided dice plus 5)',
   inputSchema: {
     type: 'object' as const,
     properties: {
@@ -28,8 +29,8 @@ export const toolSpec = {
   }
 };
 
-function parseDiceNotation(notation: string): { count: number; sides: number } {
-  const match = notation.toLowerCase().match(/^(\d+)d(\d+)$/);
+function parseDiceNotation(notation: string): { count: number; sides: number; modifier: number } {
+  const match = notation.toLowerCase().match(/^(\d+)d(\d+)([+-]\d+)?$/);
   if (!match) {
     throw new McpError(
       ErrorCode.InvalidParams,
@@ -39,6 +40,7 @@ function parseDiceNotation(notation: string): { count: number; sides: number } {
 
   const count = parseInt(match[1]);
   const sides = parseInt(match[2]);
+  const modifier = match[3] ? parseInt(match[3]) : 0; // If no modifier, default to 0
 
   if (count <= 0) {
     throw new McpError(
@@ -54,7 +56,7 @@ function parseDiceNotation(notation: string): { count: number; sides: number } {
     );
   }
 
-  return { count, sides };
+  return { count, sides, modifier };
 }
 
 function rollDie(sides: number): number {
@@ -62,13 +64,15 @@ function rollDie(sides: number): number {
 }
 
 function rollDiceSet(notation: string): DiceRoll {
-  const { count, sides } = parseDiceNotation(notation);
+  const { count, sides, modifier } = parseDiceNotation(notation);
   const rolls = Array.from({ length: count }, () => rollDie(sides));
-  const total = rolls.reduce((a, b) => a + b, 0);
+  const rollTotal = rolls.reduce((a, b) => a + b, 0);
+  const total = rollTotal + modifier;
 
   return {
     dice: notation,
     rolls,
+    modifier,
     total
   };
 }
