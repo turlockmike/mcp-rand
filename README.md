@@ -1,6 +1,21 @@
 # MCP Rand
 
+[![npm version](https://badge.fury.io/js/mcp-rand.svg)](https://www.npmjs.com/package/mcp-rand)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
 A Model Context Protocol (MCP) server providing random number generation utilities, starting with a UUID generator.
+
+## Installation
+
+```bash
+npm install mcp-rand
+```
+
+Or install globally:
+
+```bash
+npm install -g mcp-rand
+```
 
 ## Features
 
@@ -8,12 +23,6 @@ A Model Context Protocol (MCP) server providing random number generation utiliti
 - Generates RFC 4122 version 4 UUIDs
 - Uses Node's native crypto module for secure random generation
 - Simple interface with no required parameters
-
-## Installation
-
-```bash
-npm install mcp-rand
-```
 
 ## Usage
 
