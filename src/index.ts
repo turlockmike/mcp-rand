@@ -15,14 +15,14 @@ import {
 } from './handlers/index.js';
 
 async function registerHandlers(registry: HandlerRegistry): Promise<void> {
-  registry.register('tools/list', ListToolsHandler as Handler);
-  registry.register('tools/call', generateUuidHandler as Handler);
-  registry.register('tools/call', generateRandomNumberHandler as Handler);
-  registry.register('tools/call', generateGaussianHandler as Handler);
-  registry.register('tools/call', generateStringHandler as Handler);
-  registry.register('tools/call', generatePasswordHandler as Handler);
-  registry.register('tools/call', rollDiceHandler as Handler);
-  registry.register('tools/call', drawCardsHandler as Handler);
+  registry.register('tools/list', 'list', ListToolsHandler as Handler);
+  registry.register('tools/call', 'generate_uuid', generateUuidHandler as Handler);
+  registry.register('tools/call', 'generate_random_number', generateRandomNumberHandler as Handler);
+  registry.register('tools/call', 'generate_gaussian', generateGaussianHandler as Handler);
+  registry.register('tools/call', 'generate_string', generateStringHandler as Handler);
+  registry.register('tools/call', 'generate_password', generatePasswordHandler as Handler);
+  registry.register('tools/call', 'roll_dice', rollDiceHandler as Handler);
+  registry.register('tools/call', 'draw_cards', drawCardsHandler as Handler);
 }
 
 async function main() {
@@ -50,11 +50,11 @@ async function main() {
   });
 
   server.setRequestHandler(CallToolRequestSchema, (request) => {
-    const handler = registry.get('tools/call');
+    const handler = registry.get('tools/call', request.params.name);
     if (handler) {
       return handler(request) as Promise<{ content: { type: string; text: string }[] }>;
     }
-    throw new Error('Handler not found');
+    throw new Error(`Handler not found for tool: ${request.params.name}`);
   });
 
   const transport = new StdioServerTransport();

@@ -5,18 +5,29 @@ export interface Handler<T extends Request = Request> {
 }
 
 export interface HandlerRegistry {
-  register(method: string, handler: Handler): void;
-  get(method: string): Handler | undefined;
+  register(method: string, toolName: string, handler: Handler): void;
+  get(method: string, toolName?: string): Handler | undefined;
 }
 
 export class SimpleHandlerRegistry implements HandlerRegistry {
-  private handlers: Map<string, Handler> = new Map();
+  private handlers: Map<string, Map<string, Handler>> = new Map();
 
-  register(method: string, handler: Handler): void {
-    this.handlers.set(method, handler);
+  register(method: string, toolName: string, handler: Handler): void {
+    if (!this.handlers.has(method)) {
+      this.handlers.set(method, new Map());
+    }
+    this.handlers.get(method)!.set(toolName, handler);
   }
 
-  get(method: string): Handler | undefined {
-    return this.handlers.get(method);
+  get(method: string, toolName?: string): Handler | undefined {
+    const methodHandlers = this.handlers.get(method);
+    if (!methodHandlers) return undefined;
+    
+    if (toolName) {
+      return methodHandlers.get(toolName);
+    }
+    
+    // For methods like 'tools/list' that don't need a specific tool name
+    return methodHandlers.values().next().value;
   }
 }
