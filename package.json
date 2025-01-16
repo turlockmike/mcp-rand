@@ -1,7 +1,7 @@
 {
   "name": "mcp-rand",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP server providing random generation utilities including UUID, numbers, strings, passwords, Gaussian distribution, dice rolling, and card drawing",
   "main": "build/index.js",
   "bin": {
